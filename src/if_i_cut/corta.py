@@ -61,7 +61,7 @@ class Punto():
                 
                 logger_cagada.debug("love me anyway %f y tmp %f" % (intersex_y, intersex_y_tmp))
 
-                assert(intersex_y - intersex_y_tmp < 0.000000001)
+                assert(abs(intersex_y - intersex_y_tmp) < 0.000000001)
 
                 return Punto(intersex_x, intersex_y)
 
@@ -95,11 +95,13 @@ class ConvexoHull():
         def __init__(self):
                 self.ultimo_idx_min = 0
                 self.lineas = []
+                self.lineas_sin_filtrar = []
                 self.putos_intersex = []
 
         def anade_linea(self, linea):
                 num_lineas_orig = len(self.lineas)
                 
+                self.lineas_sin_filtrar.append(linea)
                 if(num_lineas_orig == 0):
                         self.lineas.append(linea)
                         return
@@ -131,25 +133,48 @@ class ConvexoHull():
                 idx_linea_min = -1
                 puto_minimo = None
                 
-                if(self.ultimo_idx_min < (len(self.lineas) - 1)):
-                    puto_minimo = Punto(sys.maxsize, sys.maxsize)
-    
-                    for idx_linea in range(self.ultimo_idx_min, len(self.lineas)):
-                        puto_actual = None
-                        
-                        puto_actual = self.lineas[idx_linea].evalua_puto(x)
-                        
-                        if(puto_actual.y < puto_minimo.y):
-                            puto_minimo = puto_actual
-                            idx_linea_min = idx_linea
-                            
-                    assert(idx_linea_min > -1)
+                puto_minimo = Punto(sys.maxsize, sys.maxsize)
+
+                for idx_linea in range(self.ultimo_idx_min, len(self.lineas)):
+                    puto_actual = None
                     
-                    self.ultimo_idx_min = idx_linea_min
-                else:
-                    puto_minimo = self.lineas[-1].evalua_puto(x)
+                    puto_actual = self.lineas[idx_linea].evalua_puto(x)
                     
+                    if(puto_actual.y < puto_minimo.y):
+                        puto_minimo = puto_actual
+                        idx_linea_min = idx_linea
+                        
+                assert(idx_linea_min > -1)
+                
+                self.ultimo_idx_min = idx_linea_min
+                
+#                logger_cagada.debug("el puto min de %u se alcanza con linea %s, es %s" % (x, self.lineas[idx_linea_min], puto_minimo))
+                
                 return puto_minimo
+            
+        def puto_en_linea_minima_lentote(self, x):
+                puto_minimo = None
+                linea_min = None
+                
+                puto_minimo = Punto(sys.maxsize, sys.maxsize)
+                
+#                logger_cagada.debug("las lineas sin filtrar %s" % self.lineas_sin_filtrar)
+
+                for linea in self.lineas_sin_filtrar:
+                    puto_actual = None
+                    
+                    puto_actual = linea.evalua_puto(x)
+                    
+                    if(puto_actual.y < puto_minimo.y):
+                        puto_minimo = puto_actual
+                        linea_min = linea
+                        
+ #               logger_cagada.debug("el puto min de %u se alcanza con linea %s, es %s" % (x, linea_min, puto_minimo))
+                
+                return puto_minimo
+            
+        def resetear_estado(self):
+            self.ultimo_idx_min = 0
                     
                 
 def generar_lineas(lineas, valores_a, valores_b):
@@ -167,9 +192,6 @@ def generar_lineas(lineas, valores_a, valores_b):
     else:
         valores_mayor = sorted(valores_b, reverse=True)
         valores_menor = sorted(valores_a)
-                        
-                    
-                                
 
 if __name__ == '__main__':
         lineas = []
@@ -190,3 +212,25 @@ if __name__ == '__main__':
             convex.anade_linea(linea)
             
         logger_cagada.debug("would ya still lineas %s intersex %s" % (convex.lineas, convex.putos_intersex))
+        
+        for pos_x in [-1300, -1222, 1, 1000]:
+            puto_min = None
+            puto_min_validacion = None
+            puto_min = convex.puto_en_linea_minima(pos_x)
+            puto_min_validacion = convex.puto_en_linea_minima_lentote(pos_x)
+            
+            logger_cagada.debug("anyway %s, %s" % (puto_min, puto_min_validacion))
+            
+            assert(abs(puto_min.y - puto_min_validacion.y) < 0.000000001)
+            
+        convex.resetear_estado()
+        
+        for pos_x in range(-1300, 3000):
+            puto_min = None
+            puto_min_validacion = None
+            puto_min = convex.puto_en_linea_minima(pos_x)
+            puto_min_validacion = convex.puto_en_linea_minima_lentote(pos_x)
+            
+            
+            assert(abs(puto_min.y - puto_min_validacion.y) < 0.000000001)
+            assert abs(puto_min.y - puto_min_validacion.y) < 0.000000001, "en punto x %u el puto min %f, el min de valida %f" % (pos_x, puto_min.y, puto_min_validacion.y) 
