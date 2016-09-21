@@ -11,7 +11,7 @@ import fileinput
 
 logger_cagada = None
 nivel_log = logging.ERROR
-#nivel_log = logging.DEBUG
+# nivel_log = logging.DEBUG
 
 class Linea():
         def __init__(self, pendiente, desplazamiento):
