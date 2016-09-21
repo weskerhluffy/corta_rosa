@@ -229,12 +229,13 @@ def corta_rosa_core(numeros_a, numeros_b):
         puto_min_validacion = None
         
         puto_min = convexo_caca.puto_en_linea_minima(pos_x)
-        puto_min_validacion = convexo_caca.puto_en_linea_minima_lentote(pos_x)
+        if(nivel_log==logging.DEBUG):
+            puto_min_validacion = convexo_caca.puto_en_linea_minima_lentote(pos_x)
         
-        logger_cagada.debug("anyway %s, %s" % (puto_min, puto_min_validacion))
+            logger_cagada.debug("anyway %s, %s" % (puto_min, puto_min_validacion))
         
-        assert(abs(puto_min.y - puto_min_validacion.y) < 0.000000001)
-        assert abs(puto_min.y - puto_min_validacion.y) < 0.000000001, "en punto x %u el puto min %f, el min de valida %f" % (pos_x, puto_min.y, puto_min_validacion.y) 
+            assert(abs(puto_min.y - puto_min_validacion.y) < 0.000000001)
+            assert abs(puto_min.y - puto_min_validacion.y) < 0.000000001, "en punto x %u el puto min %f, el min de valida %f" % (pos_x, puto_min.y, puto_min_validacion.y) 
         
         that_u_are += puto_min.y
     
