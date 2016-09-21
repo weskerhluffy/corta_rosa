@@ -7,10 +7,11 @@ Created on 12/09/2016
 
 import logging
 import sys
+import fileinput
 
 logger_cagada = None
-# nivel_log = logging.ERROR
-nivel_log = logging.DEBUG
+nivel_log = logging.ERROR
+#nivel_log = logging.DEBUG
 
 class Linea():
         def __init__(self, pendiente, desplazamiento):
@@ -148,7 +149,7 @@ class ConvexoHull():
                 
                 self.ultimo_idx_min = idx_linea_min
                 
-#                logger_cagada.debug("el puto min de %u se alcanza con linea %s, es %s" % (x, self.lineas[idx_linea_min], puto_minimo))
+                logger_cagada.debug("el puto min de %u se alcanza con linea %s, es %s" % (x, self.lineas[idx_linea_min], puto_minimo))
                 
                 return puto_minimo
             
@@ -169,7 +170,7 @@ class ConvexoHull():
                         puto_minimo = puto_actual
                         linea_min = linea
                         
- #               logger_cagada.debug("el puto min de %u se alcanza con linea %s, es %s" % (x, linea_min, puto_minimo))
+#                logger_cagada.debug("el puto min de %u se alcanza con linea %s, es %s" % (x, linea_min, puto_minimo))
                 
                 return puto_minimo
             
@@ -177,60 +178,114 @@ class ConvexoHull():
             self.ultimo_idx_min = 0
                     
                 
-def generar_lineas(lineas, valores_a, valores_b):
+def corta_rosa_generar_lineas(lineas, valores_a, valores_b, lineas_de_a, valores_pos_x):
     tam_a = 0
     tam_b = 0
-    valores_mayor = ()
-    valores_menor = ()
+    tam_mayor = 0
+    suma_actual = 0
+    valores_mayor = []
     
     tam_a = len(valores_a)
     tam_b = len(valores_b)
     
     if(tam_a > tam_b):
-        valores_mayor = sorted(valores_a, reverse=True)
-        valores_menor = sorted(valores_b)
+        valores_mayor = sorted(valores_a)
+        valores_pos_x += sorted(valores_b)
+        lineas_de_a = True
     else:
-        valores_mayor = sorted(valores_b, reverse=True)
-        valores_menor = sorted(valores_a)
+        valores_mayor = sorted(valores_b)
+        valores_pos_x += sorted(valores_a)
+        lineas_de_a = False
+    
+    tam_mayor = len(valores_mayor)
+    
+    logger_cagada.debug("los valores q aran lineas %s" % valores_mayor)
+    lineas.append(Linea(tam_mayor + 1, 0))
+    for idx_valor, valor in enumerate(valores_mayor):
+        suma_actual += valor
+        nueva_linea = Linea(tam_mayor - idx_valor , suma_actual)
+        lineas.append(nueva_linea)
+    
+    logger_cagada.debug("las lineas degeneradas %s" % lineas)
+    
+def corta_rosa_core(numeros_a, numeros_b):
+    son_lineas_de_a = False
+    that_u_are = 0
+    lineas = []
+    valores_x = []
+    convexo_caca = None
+    
+    corta_rosa_generar_lineas(lineas, numeros_a, numeros_b, son_lineas_de_a, valores_x)
+    
+    convexo_caca = ConvexoHull()
+    
+    for linea in lineas:
+        convexo_caca.anade_linea(linea)
+        
+    logger_cagada.debug("las lienas sobreviv %s" % convexo_caca.lineas)
+    logger_cagada.debug("why wont %s" % valores_x)
+    for pos_x in valores_x:
+        puto_min = None
+        puto_min_validacion = None
+        
+        puto_min = convexo_caca.puto_en_linea_minima(pos_x)
+        puto_min_validacion = convexo_caca.puto_en_linea_minima_lentote(pos_x)
+        
+        logger_cagada.debug("anyway %s, %s" % (puto_min, puto_min_validacion))
+        
+        assert(abs(puto_min.y - puto_min_validacion.y) < 0.000000001)
+        assert abs(puto_min.y - puto_min_validacion.y) < 0.000000001, "en punto x %u el puto min %f, el min de valida %f" % (pos_x, puto_min.y, puto_min_validacion.y) 
+        
+        that_u_are += puto_min.y
+    
+    logger_cagada.debug("la suma total %lu" % that_u_are)
+    
+    that_u_are += lineas[-1].desplazamiento
+    logger_cagada.debug("la suma con valor inicial %lu" % that_u_are)
+    
+    return that_u_are
+        
+def corta_rosa_main():
+    num_casos = 0
+    lineas = []
+    
+    lineas = list(fileinput.input())
+    
+    num_casos = int(lineas[0].strip())
+    
+    logger_cagada.debug("los momentos %u" % num_casos)
+    
+    for idx_caso in range(num_casos):
+        num_as = 0
+        num_bs = 0
+        chosto_min = 0
+        valores_a = []
+        valores_b = []
+        linea = ""
+        
+        logger_cagada.debug("when u scream %s" % lineas[idx_caso * 3 + 1].strip())
+        num_as, num_bs = (int(mierda) for mierda in lineas[idx_caso * 3 + 1].strip().split())
+        
+        valores_a = [int(mierda) for mierda in lineas[idx_caso * 3 + 2].strip().split()]
+        valores_b = [int(mierda) for mierda in lineas[idx_caso * 3 + 3].strip().split()]
+        
+        logger_cagada.debug("valores a %s, valores b %s" % (valores_a, valores_b))
+        
+        assert num_as - 1 == len(valores_a), "el num establecido de valores a %u, el q c encontro %u" % (num_as, len(valores_a))
+        assert num_bs - 1 == len(valores_b), "el num establecido de valores a %u, el q c encontro %u" % (num_bs, len(valores_b))
+        
+        chosto_min = corta_rosa_core(valores_a, valores_b)
+        
+        print("%u" % (chosto_min % (int(1E9) + 7)))
+        
+        
+        
 
 if __name__ == '__main__':
-        lineas = []
-        
-        convex = None
-    
         FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
         logging.basicConfig(level=nivel_log, format=FORMAT)
         logger_cagada = logging.getLogger("asa")
         logger_cagada.setLevel(nivel_log)
 
 
-        lineas = [Linea(1020, 234), Linea(844, 2344), Linea(222, 332), Linea(221, 343)]
-        
-        convex = ConvexoHull()
-        
-        for linea in lineas:
-            convex.anade_linea(linea)
-            
-        logger_cagada.debug("would ya still lineas %s intersex %s" % (convex.lineas, convex.putos_intersex))
-        
-        for pos_x in [-1300, -1222, 1, 1000]:
-            puto_min = None
-            puto_min_validacion = None
-            puto_min = convex.puto_en_linea_minima(pos_x)
-            puto_min_validacion = convex.puto_en_linea_minima_lentote(pos_x)
-            
-            logger_cagada.debug("anyway %s, %s" % (puto_min, puto_min_validacion))
-            
-            assert(abs(puto_min.y - puto_min_validacion.y) < 0.000000001)
-            
-        convex.resetear_estado()
-        
-        for pos_x in range(-1300, 3000):
-            puto_min = None
-            puto_min_validacion = None
-            puto_min = convex.puto_en_linea_minima(pos_x)
-            puto_min_validacion = convex.puto_en_linea_minima_lentote(pos_x)
-            
-            
-            assert(abs(puto_min.y - puto_min_validacion.y) < 0.000000001)
-            assert abs(puto_min.y - puto_min_validacion.y) < 0.000000001, "en punto x %u el puto min %f, el min de valida %f" % (pos_x, puto_min.y, puto_min_validacion.y) 
+        corta_rosa_main()
