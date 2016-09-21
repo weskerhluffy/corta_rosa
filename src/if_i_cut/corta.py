@@ -11,7 +11,7 @@ import fileinput
 
 logger_cagada = None
 nivel_log = logging.ERROR
-# nivel_log = logging.DEBUG
+#nivel_log = logging.DEBUG
 
 class Linea():
         def __init__(self, pendiente, desplazamiento):
@@ -100,24 +100,27 @@ class ConvexoHull():
                 self.putos_intersex = []
 
         def anade_linea(self, linea):
+                borro_al_menos_1_linea = False
+                
                 num_lineas_orig = len(self.lineas)
                 
                 self.lineas_sin_filtrar.append(linea)
+                self.lineas.append(linea)
                 if(num_lineas_orig == 0):
-                        self.lineas.append(linea)
                         return
 
-                self.lineas.append(linea)
-                nueva_intersex = Punto.genera_intersex(linea, self.lineas[-2])
-                logger_cagada.debug("nueva intersez entre %s y %s es %s" % (linea, self.lineas[-2], nueva_intersex))
 
                 if(num_lineas_orig == 1):
                         assert(not len(self.putos_intersex))
 
+                        nueva_intersex = Punto.genera_intersex(linea, self.lineas[-2])
+                        logger_cagada.debug("nueva intersez entre %s y %s es %s" % (linea, self.lineas[-2], nueva_intersex))
                         self.putos_intersex.append(nueva_intersex)
 
                         return
 
+                nueva_intersex = Punto.genera_intersex(linea, self.lineas[-3])
+                logger_cagada.debug("nueva intersez entre %s y %s es %s" % (linea, self.lineas[-3], nueva_intersex))
                 logger_cagada.debug("los putos intersex %s" % self.putos_intersex)
                 while (len(self.putos_intersex) >= 1):
                         logger_cagada.debug("comparando intersex nueva %s con %s" % (nueva_intersex, self.putos_intersex[-1]))
@@ -125,29 +128,34 @@ class ConvexoHull():
                                 logger_cagada.debug("borrando %s %s" % (self.putos_intersex[-1], self.lineas[-2]))
                                 del self.putos_intersex[-1]
                                 del self.lineas[-2]
+                                borro_al_menos_1_linea = True
                         else:
                             break
 
+                if(not borro_al_menos_1_linea):
+                    nueva_intersex = Punto.genera_intersex(linea, self.lineas[-2])
+                    logger_cagada.debug("se sustituyo el intersex por %s" % nueva_intersex)
                 self.putos_intersex.append(nueva_intersex)
 
         def puto_en_linea_minima(self, x):
                 idx_linea_min = -1
+                idx_puto_intersex = -1
                 puto_minimo = None
                 
                 puto_minimo = Punto(sys.maxsize, sys.maxsize)
 
-                for idx_linea in range(self.ultimo_idx_min, len(self.lineas)):
-                    puto_actual = None
-                    
-                    puto_actual = self.lineas[idx_linea].evalua_puto(x)
-                    
-                    if(puto_actual.y < puto_minimo.y):
-                        puto_minimo = puto_actual
-                        idx_linea_min = idx_linea
-                        
-                assert(idx_linea_min > -1)
+                for idx_intersex in range(self.ultimo_idx_min, len(self.putos_intersex)):
+                    puto_intersex = self.putos_intersex[idx_intersex]
+                    if(x < puto_intersex.x):
+                        idx_puto_intersex = idx_intersex
+                        break
                 
-                self.ultimo_idx_min = idx_linea_min
+                idx_linea_min = idx_puto_intersex
+                puto_minimo = self.lineas[idx_linea_min].evalua_puto(x)
+                    
+                self.ultimo_idx_min = idx_puto_intersex
+                
+                logger_cagada.debug("el puto de intersex para x %u es %s" % (x, self.putos_intersex[idx_puto_intersex]))
                 
                 logger_cagada.debug("el puto min de %u se alcanza con linea %s, es %s" % (x, self.lineas[idx_linea_min], puto_minimo))
                 
@@ -170,7 +178,7 @@ class ConvexoHull():
                         puto_minimo = puto_actual
                         linea_min = linea
                         
-#                logger_cagada.debug("el puto min de %u se alcanza con linea %s, es %s" % (x, linea_min, puto_minimo))
+                logger_cagada.debug("el puto min de %u se alcanza con linea %s, es %s" % (x, linea_min, puto_minimo))
                 
                 return puto_minimo
             
@@ -229,12 +237,11 @@ def corta_rosa_core(numeros_a, numeros_b):
         puto_min_validacion = None
         
         puto_min = convexo_caca.puto_en_linea_minima(pos_x)
-        if(nivel_log==logging.DEBUG):
+        if(nivel_log == logging.DEBUG):
             puto_min_validacion = convexo_caca.puto_en_linea_minima_lentote(pos_x)
         
             logger_cagada.debug("anyway %s, %s" % (puto_min, puto_min_validacion))
         
-            assert(abs(puto_min.y - puto_min_validacion.y) < 0.000000001)
             assert abs(puto_min.y - puto_min_validacion.y) < 0.000000001, "en punto x %u el puto min %f, el min de valida %f" % (pos_x, puto_min.y, puto_min_validacion.y) 
         
         that_u_are += puto_min.y
