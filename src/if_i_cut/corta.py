@@ -49,10 +49,10 @@ class Punto():
                 
                 logger_cagada.debug("la intersex x %f" % intersex_x)
                 
-                intersex_y = float(pend_b * desp_a - pend_a * desp_b) / float(pend_b - pend_a)
+                intersex_y = float(pend_a * intersex_x + desp_a)
 
                 if(nivel_log == logging.DEBUG):
-                    intersex_y_tmp = float(pend_a * intersex_x + desp_a)
+                    intersex_y_tmp = float(pend_b * desp_a - pend_a * desp_b) / float(pend_b - pend_a)
                 
                     logger_cagada.debug("love me anyway %f y tmp %f" % (intersex_y, intersex_y_tmp))
 
@@ -214,7 +214,7 @@ def corta_rosa_core(numeros_a, numeros_b):
     valores_x = []
     convexo_caca = None
     
-    corta_rosa_generar_lineas(lineas, numeros_a, numeros_b,  valores_x)
+    corta_rosa_generar_lineas(lineas, numeros_a, numeros_b, valores_x)
     
     convexo_caca = ConvexoHull()
     
