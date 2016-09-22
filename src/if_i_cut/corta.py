@@ -11,7 +11,7 @@ import fileinput
 
 logger_cagada = None
 nivel_log = logging.ERROR
-#nivel_log = logging.DEBUG
+# nivel_log = logging.DEBUG
 
 class Linea():
         def __init__(self, pendiente, desplazamiento):
@@ -38,13 +38,6 @@ class Punto():
 
         @staticmethod
         def genera_intersex(linea_a, linea_b):
-                pend_a = 0
-                pend_b = 0
-                desp_a = 0
-                desp_b = 0
-                intersex_x = 0.0
-                intersex_y = 0.0
-                intersex_y_tmp = 0.0
 
                 logger_cagada.debug("if i cut off a %s b %s" % (linea_a, linea_b))
                 
@@ -58,11 +51,12 @@ class Punto():
                 
                 intersex_y = float(pend_b * desp_a - pend_a * desp_b) / float(pend_b - pend_a)
 
-                intersex_y_tmp = float(pend_a * intersex_x + desp_a)
+                if(nivel_log == logging.DEBUG):
+                    intersex_y_tmp = float(pend_a * intersex_x + desp_a)
                 
-                logger_cagada.debug("love me anyway %f y tmp %f" % (intersex_y, intersex_y_tmp))
+                    logger_cagada.debug("love me anyway %f y tmp %f" % (intersex_y, intersex_y_tmp))
 
-                assert(abs(intersex_y - intersex_y_tmp) < 0.000000001)
+                    assert(abs(intersex_y - intersex_y_tmp) < 0.000000001)
 
                 return Punto(intersex_x, intersex_y)
 
@@ -186,7 +180,7 @@ class ConvexoHull():
             self.ultimo_idx_min = 0
                     
                 
-def corta_rosa_generar_lineas(lineas, valores_a, valores_b, lineas_de_a, valores_pos_x):
+def corta_rosa_generar_lineas(lineas, valores_a, valores_b, valores_pos_x):
     tam_a = 0
     tam_b = 0
     tam_mayor = 0
@@ -199,11 +193,9 @@ def corta_rosa_generar_lineas(lineas, valores_a, valores_b, lineas_de_a, valores
     if(tam_a > tam_b):
         valores_mayor = sorted(valores_a)
         valores_pos_x += sorted(valores_b)
-        lineas_de_a = True
     else:
         valores_mayor = sorted(valores_b)
         valores_pos_x += sorted(valores_a)
-        lineas_de_a = False
     
     tam_mayor = len(valores_mayor)
     
@@ -217,13 +209,12 @@ def corta_rosa_generar_lineas(lineas, valores_a, valores_b, lineas_de_a, valores
     logger_cagada.debug("las lineas degeneradas %s" % lineas)
     
 def corta_rosa_core(numeros_a, numeros_b):
-    son_lineas_de_a = False
     that_u_are = 0
     lineas = []
     valores_x = []
     convexo_caca = None
     
-    corta_rosa_generar_lineas(lineas, numeros_a, numeros_b, son_lineas_de_a, valores_x)
+    corta_rosa_generar_lineas(lineas, numeros_a, numeros_b,  valores_x)
     
     convexo_caca = ConvexoHull()
     
